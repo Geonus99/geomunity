@@ -10,12 +10,16 @@ jobs:
     steps:
       - name: Send Commit to Notion
         env:
+          # 시크릿을 여기에서 환경변수로 매핑
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
         run: |
-          # 1. JSON 파일 생성
+          # 1. 환경변수가 들어왔는지 확인 (로그에서 확인 가능)
+          echo "DB ID length: ${#DATABASE_ID}"
+          
+          # 2. JSON 생성 - 변수 전달 확인
           jq -n \
             --arg db "$DATABASE_ID" \
             --arg msg "$COMMIT_MSG" \
@@ -28,7 +32,7 @@ jobs:
               }
             }' > payload.json
 
-          # 2. curl로 전송 (헤더를 명확히 분리)
+          # 3. 데이터 전송
           curl -v -X POST https://api.notion.com/v1/pages \
             -H "Authorization: Bearer $NOTION_TOKEN" \
             -H "Content-Type: application/json" \
